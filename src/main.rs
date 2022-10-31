@@ -1,10 +1,34 @@
+extern crate core;
+
+mod btc_menu;
+
 use std::io;
+use std::ops::Add;
+use std::str::FromStr;
+use secp256k1::{
+    rand::{rngs, SeedableRng},
+    PublicKey, SecretKey
+};
+use bitcoin::{ Address, Network };
+use bitcoin::util::address::Payload;
+
 
 const MAX_NUMBER_OF_ATTEMPTS: u8 = 3;
+const SEED: u64 = 42;
 
 struct User{
     username: String,
     password: String
+}
+
+#[derive(Debug)]
+enum Menu {
+    GenerateKeyPair,
+    GenerateWalletAddress,
+    CheckBalance,
+    SendBTC,
+    Quit,
+    NotKnown,
 }
 
 
@@ -47,24 +71,69 @@ fn login() -> bool {
 }
 
 
-fn show_menu() {
-    println! ("-----------------------------------------------");
-    println! ("Choose one of the following options:");
-    println! ("-----------------------------------------------");
+fn generate_key_pair() -> (SecretKey, PublicKey){
+    let secp = secp256k1::Secp256k1::new();
+    let mut rng = rngs::StdRng::seed_from_u64(SEED);
 
-    println! ("Press 1 to generate a random private key");
-    println! ("Press 2 to generate a random Public key");
-    println! ("Press 3 to generate a random Wallet Address");
-    println! ("press 4 to create a multisig address");
-    println! ("Press 5 to Check Balance");
-    println! ("Press 6 Hash Address");
-    println! ("Press 7 to Send Bitcoins");
-    println! ("Press 8 to Push Transactions to Blockchain");
-    println! ("Press 9 Send Bitcoin Info to Email");
-    println! ("Press 10 to Send bitcoin Transtions to Email");
-    println! ("Press 11 Send Notification to phone Number");
-    println! ("Press Q to Exit");
-    println! ("-----------------------------------------------");
+    secp.generate_keypair(&mut rng)
+}
+
+
+fn generate_wallet_address(public_key: &String)  {
+
+}
+
+fn check_balance() {
+
+}
+
+fn hash_address() {
+
+}
+
+fn push_transactions_to_blockchain() {
+
+}
+
+
+
+fn execute_command(choice: Menu) {
+    println!("{:?}", choice);
+    match choice {
+        Menu::GenerateKeyPair => {
+            println!{"A key pair is being generated!"};
+            let (secret_key, public_key) = generate_key_pair();
+            println!("secret key: {}", &secret_key.to_string());
+            println!("public key: {}", &public_key.to_string());
+
+        },
+
+        Menu::GenerateWalletAddress => {
+            let mut public_key = String::new();
+            io::stdin().read_line(&mut public_key).expect("Failed to read public key");
+
+            println!{"A new BTC wallet is being generated!"};
+            // let address = generate_wallet_address(&public_key);
+            // println!("{}", address);
+        },
+
+        Menu::CheckBalance => {
+            println!{"The balance is being checked!"};
+        },
+
+        Menu::SendBTC => {
+            println!{"BTC is being sent!"};
+        },
+
+        Menu::Quit => {
+            println!{"Quitting!"};
+        },
+
+        Menu::NotKnown => {
+            println!("This command is not supported!");
+            println!{"Quitting!"};
+        },
+    }
 }
 
 
@@ -72,8 +141,29 @@ fn main() {
     let logged_in = login();
 
     if logged_in {
-        println!("You have successfully logged in!");
-        show_menu();
+        btc_menu::show_menu();
+
+        //TODO: change to an int or match whether int or &str
+        let mut choice;
+        let mut chosen_number = String::new();
+        io::stdin().read_line(&mut chosen_number).expect("This option is not supported");
+
+        if chosen_number.trim() == "1" {
+            choice = Menu::GenerateKeyPair;
+        } else if  chosen_number.trim() == "2" {
+            choice = Menu::GenerateWalletAddress;
+        } else if chosen_number.trim() == "3" {
+            choice = Menu::CheckBalance;
+        } else if chosen_number.trim() == "4" {
+            choice = Menu::SendBTC;
+        } else if chosen_number.trim() == "Q" {
+            choice = Menu::Quit;
+        } else {
+            choice = Menu::NotKnown;
+        }
+
+        execute_command(choice);
+
     } else {
         println!("You were unable to login!")
     }
