@@ -21,8 +21,17 @@ struct User{
     password: String
 }
 
-#[derive(Debug)]
-enum Menu {
+impl User {
+    pub fn known_user() -> User {
+        User {
+            username: String::from("polkadot21"),
+            password: String::from("123")
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum Menu {
     GenerateKeyPair,
     GenerateWalletAddress,
     CheckBalance,
@@ -30,14 +39,51 @@ enum Menu {
     Quit,
     NotKnown,
 }
+#[derive(Debug)]
+pub struct Choice {
+    choice: Menu
+}
+
+impl Choice {
+    pub fn new() -> Choice {
+        let mut chosen_number = String::new();
+        io::stdin().read_line(&mut chosen_number).expect("This option is not supported");
+        return if chosen_number.trim() == "1" {
+            Choice {
+                choice: Menu::GenerateKeyPair
+            }
+        } else if chosen_number.trim() == "2" {
+            Choice {
+                choice: Menu::GenerateWalletAddress
+            }
+        } else if chosen_number.trim() == "3" {
+            Choice {
+                choice: Menu::CheckBalance
+            }
+        } else if chosen_number.trim() == "4" {
+            Choice {
+                choice: Menu::SendBTC
+            }
+        } else if chosen_number.trim() == "Q" {
+            Choice {
+                choice: Menu::Quit
+            }
+        } else {
+            Choice {
+                choice: Menu::NotKnown
+            }
+        }
+    }
+
+    pub fn choice(&self) -> Menu {
+        self.choice
+    }
+}
 
 
 fn login() -> bool {
 
-    let known_user = User {
-        username: String::from("polkadot21"),
-        password: String::from("123")
-    };
+    let known_user = User::known_user();
 
     println!("Please enter your username:");
     let mut username = String::new();
@@ -144,25 +190,10 @@ fn main() {
         btc_menu::show_menu();
 
         //TODO: change to an int or match whether int or &str
-        let mut choice;
-        let mut chosen_number = String::new();
-        io::stdin().read_line(&mut chosen_number).expect("This option is not supported");
+        let choice = Choice::new();
+        let chosen_value: Menu = choice.choice;
 
-        if chosen_number.trim() == "1" {
-            choice = Menu::GenerateKeyPair;
-        } else if  chosen_number.trim() == "2" {
-            choice = Menu::GenerateWalletAddress;
-        } else if chosen_number.trim() == "3" {
-            choice = Menu::CheckBalance;
-        } else if chosen_number.trim() == "4" {
-            choice = Menu::SendBTC;
-        } else if chosen_number.trim() == "Q" {
-            choice = Menu::Quit;
-        } else {
-            choice = Menu::NotKnown;
-        }
-
-        execute_command(choice);
+        execute_command(chosen_value);
 
     } else {
         println!("You were unable to login!")
