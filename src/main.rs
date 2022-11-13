@@ -5,16 +5,20 @@ mod btc_menu;
 use std::io;
 use std::ops::Add;
 use std::str::FromStr;
-use secp256k1::{
-    rand::{rngs, SeedableRng},
-    PublicKey, SecretKey
-};
-use bitcoin::{ Address, Network };
+
+use serde_json::{Result, Value};
+use std::fs::File;
+
+use secp256k1::{Secp256k1, Message};
+use secp256k1::{ PublicKey, SecretKey};
+use secp256k1::rand::thread_rng;
+use bitcoin::{Address, Network, PrivateKey};
 use bitcoin::util::address::Payload;
 
 
+
 const MAX_NUMBER_OF_ATTEMPTS: u8 = 3;
-const SEED: u64 = 42;
+const SEED: u64 = 1029120390912309201;
 
 struct User{
     username: String,
@@ -117,17 +121,41 @@ fn login() -> bool {
 }
 
 
-fn generate_key_pair() -> (SecretKey, PublicKey){
-    let secp = secp256k1::Secp256k1::new();
-    let mut rng = rngs::StdRng::seed_from_u64(SEED);
+fn generate_key_pair() -> PublicKey {
+    let secp = Secp256k1::new();
 
-    secp.generate_keypair(&mut rng)
+    let (secret_key, public_key) = secp.generate_keypair(&mut thread_rng());
+
+    btc_menu::show_private_key_menu();
+    let mut choice = String::new();
+    io::stdin().read_line(&mut choice).expect("Failed to understand the command!");
+    if choice.trim() == "1" {
+        save_private_key(&secret_key.to_string()).expect("TODO: panic message");
+
+    }
+    return public_key;
 }
 
 
-fn generate_wallet_address(public_key: &String)  {
+fn save_private_key(secret_key: &String) -> io::Result<()> {
 
+    std::fs::write(
+        "private_key.json",
+        serde_json::to_string_pretty(&secret_key).unwrap())
 }
+
+// fn generate_wallet_address(public_key: Option<PublicKey>)  {
+//
+//     if public_key {
+//
+//     }
+//
+//     else if is_private_key_available() {
+//         let private_key: PrivateKey = load_private_key();
+//         let public_key = PublicKey::from_secret_key(&private_key, &Secp256k1);
+//     }
+//
+// }
 
 fn check_balance() {
 
@@ -148,8 +176,7 @@ fn execute_command(choice: Menu) {
     match choice {
         Menu::GenerateKeyPair => {
             println!{"A key pair is being generated!"};
-            let (secret_key, public_key) = generate_key_pair();
-            println!("secret key: {}", &secret_key.to_string());
+            let public_key = generate_key_pair();
             println!("public key: {}", &public_key.to_string());
 
         },
@@ -159,8 +186,6 @@ fn execute_command(choice: Menu) {
             io::stdin().read_line(&mut public_key).expect("Failed to read public key");
 
             println!{"A new BTC wallet is being generated!"};
-            // let address = generate_wallet_address(&public_key);
-            // println!("{}", address);
         },
 
         Menu::CheckBalance => {

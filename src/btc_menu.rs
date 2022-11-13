@@ -14,3 +14,16 @@ pub fn show_menu() {
 
     println! ("-----------------------------------------------");
 }
+
+
+pub fn show_private_key_menu() {
+    println! ("-----------------------------------------------");
+    println!("Do you want to save your private key?");
+    println! ("-----------------------------------------------");
+
+    println! ("Press 1 to save the private key");
+    println! ("Press 2 to forget the private key");
+
+    println! ("-----------------------------------------------");
+
+}
