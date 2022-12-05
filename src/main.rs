@@ -31,28 +31,7 @@ impl User {
         }
     }
 }
-// #[derive(Debug)]
-// struct PriceRequest<'a>{
-//     ids: Vec<&'a str>,
-//     vs_currencies: Ver<&'a str>,
-//     include_market_cap: Option<bool>,
-//     include_24hr_vol: Option<bool>,
-//     include_24hr_change: Option<bool>,
-//     include_last_updated_at: Option<bool>
-// }
 
-// impl PriceRequest{
-//     pub fn get_btc_price_request() -> PriceRequest<'static> {
-//         PriceRequest{
-//             ids: Vec::from(["bitcoin"]),
-//             vs_currencies: Vec::from(["usd"]),
-//             include_market_cap: Option::from(false),
-//             include_24hr_vol: Option::from(false),
-//             include_24hr_change: Option::from(false),
-//             include_last_updated_at: Option::from(false)
-//         }
-//     }
-// }
 
 #[derive(Debug, Copy, Clone)]
 pub enum Menu {
@@ -104,6 +83,13 @@ impl Choice {
     }
 }
 
+fn is_username_correct(given_username: &str, known_username: &String) -> bool {
+    given_username.trim() == known_username
+}
+
+fn is_password_correct(given_password: &str, known_password: &String) -> bool {
+    given_password.trim() == known_password
+}
 
 fn login() -> bool {
 
@@ -114,9 +100,8 @@ fn login() -> bool {
     io::stdin().read_line(&mut username).expect("Failed to read username");
     println!("Entered {}", username);
 
-    if username.trim() != known_user.username {
-        return false;
-    }
+    if ! is_username_correct(username.trim(), &known_user.username) { return false }
+
 
     println!("Please enter your password:");
     let mut attempt = 1;
@@ -127,13 +112,12 @@ fn login() -> bool {
         io::stdin().read_line(&mut password).expect("Failed to read username");
         println!("Password entered and hidden.");
 
-        if password.trim() == known_user.password {
-            return true;
-        }
+        if is_password_correct(password.trim(), &known_user.password) { return true }
+
         else {
             let left_attempts = MAX_NUMBER_OF_ATTEMPTS - attempt;
             println!("Please, try again. You have {} attempts left", left_attempts);
-            attempt = attempt + 1;
+            attempt += 1;
         }
     }
     println!("You have used all the attempts.");
