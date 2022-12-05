@@ -2,35 +2,21 @@ extern crate core;
 
 mod btc_menu;
 
-use std::fmt::format;
 use std::io;
-use std::ops::Add;
-use std::str::FromStr;
 use std::str;
 
-use serde_json::{Result, Value};
-use std::fs::File;
-
-use secp256k1::{Secp256k1, Message};
-use secp256k1::{ PublicKey, SecretKey};
+use secp256k1::{Secp256k1};
+use secp256k1::{ PublicKey };
 use secp256k1::rand::thread_rng;
-use bitcoin::{Address, Network, PrivateKey};
-use bitcoin::util::address::Payload;
 use bs58;
-use base16;
-use bitcoin::blockdata::script::Instruction::Op;
 use hex;
-use hex::FromHex;
 
-use sha256::digest;
 use ripemd::{Ripemd160};
-use whirlpool::{Whirlpool};
 use sha2::{Digest, Sha256};
 use rust_gecko;
 
 
 const MAX_NUMBER_OF_ATTEMPTS: u8 = 3;
-const SEED: u64 = 1029120390912309201;
 
 struct User{
     username: String,
