@@ -314,7 +314,7 @@ mod tests {
         let public_key = String::from("02e639fa8cefa71a12e1e0356950d0e4fd96a9fd86bf21d9266f15c3b960558a9f");
         let known_pbk_with_version: String = String::from("00fd058f56b983e96bbcc33a7c9960f79587fc9783");
 
-        let pbk_with_version: String = get_pbk_with_version(public_key);
+        let pbk_with_version: String = get_pbk_with_version(&public_key);
         assert_eq!(pbk_with_version, known_pbk_with_version);
     }
 
@@ -354,7 +354,7 @@ mod tests {
         let public_key = String::from("02e639fa8cefa71a12e1e0356950d0e4fd96a9fd86bf21d9266f15c3b960558a9f");
         let known_wallet: String = String::from("1Q4rcqtY7eoVqnPTKizK7tSN5KBE277Hqn");
 
-        let wallet: String = generate_wallet_address(public_key);
+        let wallet: String = generate_wallet_address(&public_key);
         assert_eq!(wallet, known_wallet)
     }
 
