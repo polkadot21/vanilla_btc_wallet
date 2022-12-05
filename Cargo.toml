@@ -24,3 +24,6 @@ sha2 = "0.10.6"
 hex-literal = "0.3.4"
 bs58 = "0.4.0"
 base16 = "*"
+
+rust-gecko = "0.1.0"
+http = "0.2.8"

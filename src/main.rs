@@ -18,6 +18,7 @@ use bitcoin::{Address, Network, PrivateKey};
 use bitcoin::util::address::Payload;
 use bs58;
 use base16;
+use bitcoin::blockdata::script::Instruction::Op;
 use hex;
 use hex::FromHex;
 
@@ -25,6 +26,7 @@ use sha256::digest;
 use ripemd::{Ripemd160};
 use whirlpool::{Whirlpool};
 use sha2::{Digest, Sha256};
+use rust_gecko;
 
 
 const MAX_NUMBER_OF_ATTEMPTS: u8 = 3;
@@ -43,6 +45,28 @@ impl User {
         }
     }
 }
+// #[derive(Debug)]
+// struct PriceRequest<'a>{
+//     ids: Vec<&'a str>,
+//     vs_currencies: Ver<&'a str>,
+//     include_market_cap: Option<bool>,
+//     include_24hr_vol: Option<bool>,
+//     include_24hr_change: Option<bool>,
+//     include_last_updated_at: Option<bool>
+// }
+
+// impl PriceRequest{
+//     pub fn get_btc_price_request() -> PriceRequest<'static> {
+//         PriceRequest{
+//             ids: Vec::from(["bitcoin"]),
+//             vs_currencies: Vec::from(["usd"]),
+//             include_market_cap: Option::from(false),
+//             include_24hr_vol: Option::from(false),
+//             include_24hr_change: Option::from(false),
+//             include_last_updated_at: Option::from(false)
+//         }
+//     }
+// }
 
 #[derive(Debug, Copy, Clone)]
 pub enum Menu {
@@ -225,6 +249,30 @@ fn push_transactions_to_blockchain() {
 
 }
 
+fn check_coingecko_is_alive() {
+    let response = rust_gecko::server::ping();
+    assert_eq!(response.status, 200);
+}
+
+
+fn get_btc_price() -> f64 {
+    check_coingecko_is_alive();
+
+    let ids = Vec::from(["bitcoin"]);
+    let currencies = Vec::from(["usd"]);
+
+    let include_market_cap = Option::from(false);
+    let include_24hr_vol = Option::from(false);
+    let include_24hr_change = Option::from(false);
+    let include_last_updated_at = Option::from(false);
+    let price_response = rust_gecko::simple::price(
+        ids, currencies, include_market_cap, include_24hr_vol,
+        include_24hr_change, include_last_updated_at
+    );
+    assert_eq!(price_response.status, 200);
+    price_response.json.unwrap()["bitcoin"]["usd"].as_f64().unwrap()
+}
+
 
 
 fn execute_command(choice: Menu) {
@@ -285,7 +333,7 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use crate::{encode_pbk_with_version_and_checksum_to_base58, generate_wallet_address, get_checksum_4_bytes, get_pbk_with_version, get_pbk_with_version_and_checksum};
+    use crate::{encode_pbk_with_version_and_checksum_to_base58, generate_wallet_address, get_checksum_4_bytes, get_coingecko_response, get_pbk_with_version, get_pbk_with_version_and_checksum};
 
     #[test]
     fn test_pbk_with_version() {
@@ -335,4 +383,10 @@ mod tests {
         let wallet: String = generate_wallet_address(public_key);
         assert_eq!(wallet, known_wallet)
     }
+    //
+    // #[test]
+    // fn test_coingecko_is_alive(){
+    //     let response = get_coingecko_response();
+    //     assert_eq!(response.status, 200);
+    // }
 }
