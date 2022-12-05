@@ -178,7 +178,7 @@ fn save_private_key(secret_key: &String) -> io::Result<()> {
         serde_json::to_string_pretty(&secret_key).unwrap())
 }
 
-fn get_pbk_with_version(public_key: String) -> String {
+fn get_pbk_with_version(public_key: &str) -> String {
     let version = "00";
 
     //sha256
@@ -226,13 +226,15 @@ fn encode_pbk_with_version_and_checksum_to_base58(pbk_with_version_and_checksum:
     encoded_base58
 }
 
-fn generate_wallet_address(public_key: String) -> String {
+fn generate_wallet_address(public_key: &str) -> String {
 
     let pbk_with_version_str = get_pbk_with_version(public_key);
     let checksum_4_bytes: String = get_checksum_4_bytes(&pbk_with_version_str);
     let pbk_with_version_and_checksum = get_pbk_with_version_and_checksum(pbk_with_version_str, checksum_4_bytes) ;
     let wallet: String = encode_pbk_with_version_and_checksum_to_base58(pbk_with_version_and_checksum);
-
+    println!("---------------------------");
+    println!("you address is: {}", wallet);
+    println!("---------------------------");
     wallet
 
 }
@@ -289,7 +291,7 @@ fn execute_command(choice: Menu) {
             println!("Please enter your public key:");
             let mut public_key = String::new();
             io::stdin().read_line(&mut public_key).expect("Failed to read public key");
-            generate_wallet_address(public_key);
+            generate_wallet_address(public_key.trim());
 
         },
 
@@ -333,12 +335,14 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use crate::{encode_pbk_with_version_and_checksum_to_base58, generate_wallet_address, get_checksum_4_bytes, get_coingecko_response, get_pbk_with_version, get_pbk_with_version_and_checksum};
+    use crate::{encode_pbk_with_version_and_checksum_to_base58, generate_wallet_address,
+                get_checksum_4_bytes, get_pbk_with_version,
+                get_pbk_with_version_and_checksum, check_coingecko_is_alive};
 
     #[test]
     fn test_pbk_with_version() {
-        let public_key = String::from("035718e87a0e5220efa55f0d220c561057939c35875ba48a05d3e149ff795ed320");
-        let known_pbk_with_version: String = String::from("005e44c38815bfea90b2f6d6949d0d06e20d59f71e");
+        let public_key = String::from("02e639fa8cefa71a12e1e0356950d0e4fd96a9fd86bf21d9266f15c3b960558a9f");
+        let known_pbk_with_version: String = String::from("00fd058f56b983e96bbcc33a7c9960f79587fc9783");
 
         let pbk_with_version: String = get_pbk_with_version(public_key);
         assert_eq!(pbk_with_version, known_pbk_with_version);
@@ -346,8 +350,8 @@ mod tests {
 
     #[test]
     fn test_checksum_4_bytes() {
-        let known_pbk_with_version: String = String::from("005e44c38815bfea90b2f6d6949d0d06e20d59f71e");
-        let known_checksum_4_bytes: String = String::from("317563fa");
+        let known_pbk_with_version: String = String::from("00fd058f56b983e96bbcc33a7c9960f79587fc9783");
+        let known_checksum_4_bytes: String = String::from("73a31e7d");
 
         let checksum_4_bytes = get_checksum_4_bytes(&known_pbk_with_version);
         assert_eq!(checksum_4_bytes, known_checksum_4_bytes);
@@ -355,9 +359,9 @@ mod tests {
 
     #[test]
     fn test_pbk_with_version_and_checksum() {
-        let known_pbk_with_version: String = String::from("005e44c38815bfea90b2f6d6949d0d06e20d59f71e");
-        let known_checksum: String = String::from("317563fa");
-        let known_pbk_with_version_checksum: String = String::from("005e44c38815bfea90b2f6d6949d0d06e20d59f71e317563fa");
+        let known_pbk_with_version: String = String::from("00fd058f56b983e96bbcc33a7c9960f79587fc9783");
+        let known_checksum: String = String::from("73a31e7d");
+        let known_pbk_with_version_checksum: String = String::from("00fd058f56b983e96bbcc33a7c9960f79587fc978373a31e7d");
 
         let pbk_with_version_and_checksum = get_pbk_with_version_and_checksum(known_pbk_with_version, known_checksum);
         assert_eq!(pbk_with_version_and_checksum, known_pbk_with_version_checksum);
@@ -366,8 +370,8 @@ mod tests {
 
     #[test]
     fn test_encode_to_base58(){
-        let known_pbk_with_version_checksum: String = String::from("005e44c38815bfea90b2f6d6949d0d06e20d59f71e317563fa");
-        let known_wallet: String = String::from("19bStpozPcjHraqE4YC4RvwCYNeKdvAxqf");
+        let known_pbk_with_version_checksum: String = String::from("00fd058f56b983e96bbcc33a7c9960f79587fc978373a31e7d");
+        let known_wallet: String = String::from("1Q4rcqtY7eoVqnPTKizK7tSN5KBE277Hqn");
 
         let wallet: String = encode_pbk_with_version_and_checksum_to_base58(known_pbk_with_version_checksum);
         assert_eq!(wallet, known_wallet);
@@ -377,16 +381,15 @@ mod tests {
 
     #[test]
     fn test_generate_wallet(){
-        let public_key = String::from("035718e87a0e5220efa55f0d220c561057939c35875ba48a05d3e149ff795ed320");
-        let known_wallet: String = String::from("19bStpozPcjHraqE4YC4RvwCYNeKdvAxqf");
+        let public_key = String::from("02e639fa8cefa71a12e1e0356950d0e4fd96a9fd86bf21d9266f15c3b960558a9f");
+        let known_wallet: String = String::from("1Q4rcqtY7eoVqnPTKizK7tSN5KBE277Hqn");
 
         let wallet: String = generate_wallet_address(public_key);
         assert_eq!(wallet, known_wallet)
     }
-    //
-    // #[test]
-    // fn test_coingecko_is_alive(){
-    //     let response = get_coingecko_response();
-    //     assert_eq!(response.status, 200);
-    // }
+
+    #[test]
+    fn test_coingecko_is_alive(){
+        check_coingecko_is_alive();
+    }
 }
